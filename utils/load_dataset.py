@@ -42,8 +42,8 @@ class CenterCropLongEdge(object):
 
 
 class LoadDataset(Dataset):
-    def __init__(self, data_path, train, resize_size=32, jitter_hue=False,
-                 norm=True):
+    def __init__(self, data_path, train, resize_size=32, jitter=False,
+                 cutout=False, norm=True):
         super(LoadDataset, self).__init__()
         self.data_path = data_path
         self.train = train
@@ -54,20 +54,26 @@ class LoadDataset(Dataset):
         if train:
             self.transforms = [
                 RandomCropLongEdge(),
-                transforms.Resize(self.resize_size)]
-            if jitter_hue:
+                transforms.Resize((self.resize_size, self.resize_size))]
+            if jitter:
                 self.transforms += [
-                    transforms.ColorJitter(hue=0.4)
+                    transforms.ColorJitter(
+                        brightness=0.4, contrast=0.4, saturation=0.4, hue=0)
                 ]
+            self.transforms += [transforms.ToTensor()]
+            if cutout:
+                self.transforms += [transforms.RandomErasing(
+                    p=1, scale=(0.1, 0.2), ratio=(0.5, 1.0)
+                )]
         else:
-            if jitter_hue == True:
+            if jitter == True or cutout == True:
                 warnings.warn(
-                    "This is for testing, jitter_hue=True will take no effect")
+                    "This is for testing, jitter, cutout will take no effect")
             self.transforms = [
                 CenterCropLongEdge(),
-                transforms.Resize(self.resize_size)]
-
-        self.transforms += [transforms.ToTensor()]
+                transforms.Resize((self.resize_size, self.resize_size)),
+                transforms.ToTensor()
+            ]
         if norm:
             self.transforms += [
                 transforms.Normalize(self.norm_mean, self.norm_std)
