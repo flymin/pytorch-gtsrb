@@ -131,6 +131,7 @@ if __name__ == '__main__':
             "acc": acc, "epoch": epoch
         }
         if acc > best_acc:
+            print('Saving Best for {:.2f}%..'.format(acc))
             if not os.path.isdir('checkpoint'):
                 os.mkdir('checkpoint')
             if save_name != "":
@@ -138,6 +139,8 @@ if __name__ == '__main__':
             save_name = args.arch + "_E{}_{:.2f}.pth".format(epoch, acc)
             torch.save(params, './checkpoint/' + save_name)
             best_acc = acc
+        else:
+            print('Best does not change from {:.2f}%..'.format(best_acc))
         model_file = "./checkpoint/" + '{}.pth'.format(args.arch)
         torch.save(params, model_file)
         del params
